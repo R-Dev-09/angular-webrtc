@@ -1,0 +1,11 @@
+{
+  "targets": {
+    "fir-rtc-93770": {
+      "hosting": {
+        "angular-webrtc": [
+          "fir-rtc-93770"
+        ]
+      }
+    }
+  }
+}
