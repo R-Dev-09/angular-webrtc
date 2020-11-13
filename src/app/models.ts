@@ -6,10 +6,6 @@ export interface PeerConnections {
   [id: string]: RTCPeerConnection;
 }
 
-export interface CandidateQueues {
-  [id: string]: RTCIceCandidate[];
-}
-
 export interface PeerData {
   type: 'offer' | 'answer' | 'candidate';
   socketId: string;

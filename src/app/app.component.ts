@@ -8,6 +8,8 @@ import { RtcService, StreamService } from './services';
 })
 export class AppComponent implements OnDestroy {
 
+  public title = 'angular-webrtc';
+
   constructor(public rtcService: RtcService, public streamService: StreamService) {}
 
   public ngOnDestroy(): void {
