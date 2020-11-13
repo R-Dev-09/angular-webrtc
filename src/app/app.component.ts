@@ -9,10 +9,21 @@ import { RtcService, StreamService } from './services';
 export class AppComponent implements OnDestroy {
 
   public title = 'angular-webrtc';
+  public roomName = 'Three Musketeers';
 
   constructor(public rtcService: RtcService, public streamService: StreamService) {}
 
   public ngOnDestroy(): void {
     this.rtcService._endConnection$.next();
+  }
+
+  public submit(event: KeyboardEvent): void {
+    event.preventDefault();
+    if (event.key === 'Enter') this.rtcService.enterRoom(this.roomName);
+  }
+
+  public getCols(): number {
+    const streams = Object.keys(this.streamService.remoteStreams).length || 1;
+    return streams <= 2 ? streams : 2;
   }
 }

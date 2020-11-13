@@ -108,7 +108,6 @@ export class RtcService {
     peerConnection.addEventListener('track', event => {
       const remoteStream = event.streams[0];
       this.streamService.remoteStreams[socketId] = remoteStream;
-      this.streamService.updateRemoteStreams();
     });
     return peerConnection;
   }

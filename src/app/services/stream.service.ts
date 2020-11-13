@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
 import { MediaStreams } from '../models';
 
 @Injectable({
@@ -9,7 +8,6 @@ export class StreamService {
 
   private _localStream: MediaStream;
   private _remoteStreams: MediaStreams = {};
-  private _remoteStreams$ = new BehaviorSubject<MediaStreams>({});
 
   public get localStream(): MediaStream {
     return this._localStream;
@@ -17,10 +15,6 @@ export class StreamService {
 
   public get remoteStreams(): MediaStreams {
     return this._remoteStreams;
-  }
-
-  public get remoteStreams$(): Observable<MediaStreams> {
-    return this._remoteStreams$.asObservable();
   }
 
   public async openLocalStream(constraintConfig: MediaStreamConstraints = {}): Promise<void> {
@@ -44,11 +38,10 @@ export class StreamService {
   }
 
   public closeStream(id: string): void {
-    const stream = this._remoteStreams[id];
-    if (!!stream) {
-      stream.getTracks().forEach(track => track.stop());
+    if (!this._remoteStreams[id]) alert('Stream not open!');
+    else {
+      this._remoteStreams[id].getTracks().forEach(track => track.stop());
       delete this._remoteStreams[id];
-      this.updateRemoteStreams();
     }
   }
 
@@ -58,11 +51,6 @@ export class StreamService {
       this._remoteStreams[id].getTracks().forEach(track => track.stop());
       delete this._remoteStreams[id];
     }
-    this.updateRemoteStreams();
-  }
-
-  public updateRemoteStreams(): void {
-    this._remoteStreams$.next(this._remoteStreams);
   }
 
   public toggleAudioSelf(): void {
