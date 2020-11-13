@@ -1,19 +1,19 @@
 <div class="video">
-  <video *ngIf="!!streamService.localStream" [muted]="true" autoplay playsinline [srcObject]="streamService.localStream"></video>
-  <video *ngFor="let remote of (streamService.remoteStreams$ | async) | keyvalue" autoplay playsinline [srcObject]="remote.value"></video>
+  <div class="box">
+    <p>{{streamService.localStream?.id}}</p>
+    <video *ngIf="!!streamService.localStream" [muted]="true" autoplay playsinline [srcObject]="streamService.localStream"></video>
+  </div>
+  <div class="box" *ngFor="let remote of (streamService.remoteStreams$ | async) | keyvalue">
+    <p>{{remote.value?.id}}</p>
+    <video autoplay playsinline [srcObject]="remote.value"></video>
+  </div>
 </div>
 <div class="buttons">
   <button color="primary" (click)="streamService.openLocalStream()">Open local stream</button>
-  <button color="primary" (click)="rtcService.createRoom()">Create Room</button>
   <button color="danger" (click)="streamService.closeLocalStream()">Close local stream</button>
-  <button color="danger" (click)="rtcService.hangUp()">Hang Up</button>
+  <button color="danger" (click)="streamService.toggleAudioSelf()">{{'Toggle audio self'}}</button>
+  <button color="danger" (click)="streamService.toggleAudioOthers()">{{'Toggle audio others'}}</button>
+  <button color="danger" (click)="streamService.toggleAudioAll()">{{'Toggle audio all'}}</button>
+  <button color="danger" (click)="rtcService.enterRoom('testRoom')">Join room</button>
+  <button color="danger" (click)="rtcService.leaveRoom('testRoom')">Leave room</button>
 </div>
-<ul class="rooms">
-  <li *ngFor="let room of rooms">
-    <span>{{room}}</span>
-    <button *ngIf="room !== rtcService.currentRoom; else joined" color="success" (click)="rtcService.joinRoom(room)">Join room</button>
-    <ng-template #joined>
-      <span>Joined</span>
-    </ng-template>
-  </li>
-</ul>

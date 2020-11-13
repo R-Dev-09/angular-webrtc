@@ -43,16 +43,42 @@ export class StreamService {
     }
   }
 
+  public closeStream(id: string): void {
+    const stream = this._remoteStreams[id];
+    if (!!stream) {
+      stream.getTracks().forEach(track => track.stop());
+      delete this._remoteStreams[id];
+      this.updateRemoteStreams();
+    }
+  }
+
   public closeStreams(): void {
     this.closeLocalStream();
     for (const id in this._remoteStreams) {
       this._remoteStreams[id].getTracks().forEach(track => track.stop());
+      delete this._remoteStreams[id];
     }
-    this._remoteStreams = {};
     this.updateRemoteStreams();
   }
 
   public updateRemoteStreams(): void {
     this._remoteStreams$.next(this._remoteStreams);
+  }
+
+  public toggleAudioSelf(): void {
+    const audio = this._localStream.getAudioTracks()[0];
+    audio.enabled = !audio.enabled;
+  }
+
+  public toggleAudioOthers(): void {
+    for (const id in this._remoteStreams) {
+      const audio = this._remoteStreams[id].getAudioTracks()[0];
+      audio.enabled = !audio.enabled;
+    }
+  }
+
+  public toggleAudioAll(): void {
+    this.toggleAudioSelf();
+    this.toggleAudioOthers();
   }
 }
