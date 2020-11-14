@@ -28,7 +28,6 @@ export class RoomComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const room = this.route.snapshot.params.id;
     this.roomName = room;
-    this.startAudio();
     this.rtcService.enterRoom(room);
     this.socketService.onMessage().pipe(takeUntil(this.rtcService.endConnection$)).subscribe(data => this.messages.push(data));
   }
@@ -51,23 +50,7 @@ export class RoomComponent implements OnInit, OnDestroy {
     return streams <= max ? streams : max;
   }
 
-  public startAudio(): void {
-    if (!this.audio) {
-      this.audio = new Audio('../assets/all_by_myself.mp3');
-      this.audio.load();
-    }
-    this.audioStarted = true;
-    this.audio.play();
-  }
-
-  public stopAudio(): void {
-    this.audio?.pause();
-    this.audio.currentTime = 0;
-    this.audioStarted = false;
-  }
-
   public ngOnDestroy(): void {
-    this.stopAudio();
     this.rtcService._endConnection$.next();
   }
 }
