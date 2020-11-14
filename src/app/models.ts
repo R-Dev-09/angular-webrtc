@@ -19,3 +19,8 @@ export interface RoomEvent {
   room: string;
   socketId: string;
 }
+
+export interface MessageData {
+  socketId: string;
+  msg: string;
+}

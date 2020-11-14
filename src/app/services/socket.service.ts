@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Socket } from 'ngx-socket-io';
 import { merge, Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { PeerData, RoomEvent } from '../models';
+import { MessageData, PeerData, RoomEvent } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +11,10 @@ import { PeerData, RoomEvent } from '../models';
 export class SocketService {
 
   constructor(private socket: Socket) {}
+
+  public get socketId(): string {
+    return this.socket.ioSocket.id;
+  }
 
   public joinRoom(room: string): void {
     this.socket.emit('join', room);
@@ -40,6 +44,14 @@ export class SocketService {
       this.socket.fromEvent<PeerData>('answer'),
       this.socket.fromEvent<PeerData>('candidate')
     ).pipe(catchError(this.handleError));
+  }
+
+  public sendMessage(room: string, msg: string): void {
+    this.socket.emit('message', {room, msg});
+  }
+
+  public onMessage(): Observable<MessageData> {
+    return this.socket.fromEvent<MessageData>('message').pipe(catchError(this.handleError));
   }
 
   private handleError = (err: HttpErrorResponse): Observable<never> => throwError(err);
