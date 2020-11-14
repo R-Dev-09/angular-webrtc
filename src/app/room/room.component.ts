@@ -16,6 +16,8 @@ export class RoomComponent implements OnInit, OnDestroy {
   public audio: HTMLAudioElement;
   public roomName: string;
   public audioStarted: boolean;
+  public typer: string;
+  public typeout: any;
 
   constructor(
     public streamService: StreamService,
@@ -29,7 +31,15 @@ export class RoomComponent implements OnInit, OnDestroy {
     const room = this.route.snapshot.params.id;
     this.roomName = room;
     this.rtcService.enterRoom(room);
-    this.socketService.onMessage().pipe(takeUntil(this.rtcService.endConnection$)).subscribe(data => this.messages.push(data));
+    this.socketService.messageListeners().pipe(takeUntil(this.rtcService.endConnection$)).subscribe(data => {
+      if (Array.isArray(data)) this.messages = data;
+      else this.messages.push(data);
+    });
+    this.socketService.typeListener().pipe(takeUntil(this.rtcService.endConnection$)).subscribe(socketId => {
+      this.typer = socketId;
+      if (!!this.typeout) clearTimeout(this.typeout);
+      this.typeout = setTimeout(() => this.typer = null, 2000);
+    });
   }
 
   public leaveRoom(): void {
@@ -42,7 +52,7 @@ export class RoomComponent implements OnInit, OnDestroy {
       event.preventDefault();
       this.socketService.sendMessage(this.roomName, this.currentMessage);
       this.currentMessage = null;
-    }
+    } else this.socketService.sendTyping(this.roomName);
   }
 
   public maxCols(max: number): number {

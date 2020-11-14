@@ -28,7 +28,7 @@ export class RtcService {
   public async enterRoom(room: string): Promise<void> {
     this._currentRoom = room;
     if (!this.streamService.localStream) await this.streamService.openLocalStream();
-    this.socketService.eventListeners().pipe(takeUntil(this.endConnection$)).subscribe(data => {
+    this.socketService.peerListeners().pipe(takeUntil(this.endConnection$)).subscribe(data => {
       switch (data.type) {
         case 'joined': this.handleJoined(data); break;
         case 'left': this.handleLeft(data); break;
