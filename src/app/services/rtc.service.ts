@@ -52,7 +52,7 @@ export class RtcService {
   }
 
   private async handleJoined(data: RoomEvent): Promise<void> {
-    const peerConnection = this.createPeerConnection(data.socketId);
+    const peerConnection = this.createPeerConnection(data.socketId, data.userName);
     try {
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
@@ -69,7 +69,7 @@ export class RtcService {
   }
 
   private async handleOffer(data: PeerData): Promise<void> {
-    const peerConnection = this.createPeerConnection(data.socketId);
+    const peerConnection = this.createPeerConnection(data.socketId, data.userName);
     try {
       await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
       const answer = await peerConnection.createAnswer();
@@ -98,7 +98,7 @@ export class RtcService {
     }
   }
 
-  private createPeerConnection(socketId: string): RTCPeerConnection {
+  private createPeerConnection(socketId: string, userName: string): RTCPeerConnection {
     const peerConnection = this.peerConnections[socketId] = new RTCPeerConnection(CONNFIG);
     const localStream = this.streamService.localStream;
     localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
@@ -107,6 +107,7 @@ export class RtcService {
     });
     peerConnection.addEventListener('track', event => {
       const remoteStream = event.streams[0];
+      remoteStream['userName'] = userName;
       this.streamService.remoteStreams[socketId] = remoteStream;
     });
     return peerConnection;

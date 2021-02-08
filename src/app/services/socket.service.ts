@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Socket } from 'ngx-socket-io';
+import { NgxSocket } from 'ngx-sockets';
 import { merge, Observable, throwError } from 'rxjs';
 import { catchError, throttleTime } from 'rxjs/operators';
 import { MessageData, PeerData, RoomEvent } from '../models';
@@ -10,14 +10,14 @@ import { MessageData, PeerData, RoomEvent } from '../models';
 })
 export class SocketService {
 
-  constructor(private socket: Socket) {}
+  constructor(private socket: NgxSocket) {}
 
   public get socketId(): string {
-    return this.socket.ioSocket.id;
+    return this.socket.id;
   }
 
   public joinRoom(room: string): void {
-    this.socket.emit('join', room);
+    this.socket.emit('join', {room, userName: this.socketId});
   }
 
   public leaveRoom(room: string): void {
@@ -25,7 +25,7 @@ export class SocketService {
   }
 
   public sendOffer(id: string, offer: any): void {
-    this.socket.emit('offer', {id, offer});
+    this.socket.emit('offer', {id, offer, userName: this.socketId});
   }
 
   public sendAnswer(id: string, answer: any): void {
@@ -37,11 +37,11 @@ export class SocketService {
   }
 
   public sendMessage(room: string, msg: string): void {
-    this.socket.emit('message', {room, msg});
+    this.socket.emit('message', {room, msg, userName: this.socketId});
   }
 
   public sendTyping(room: string): void {
-    this.socket.emit('typing', room);
+    this.socket.emit('typing', {room, userName: this.socketId});
   }
 
   public typeListener(): Observable<string> {
@@ -66,6 +66,14 @@ export class SocketService {
       this.socket.fromEvent<MessageData>('message'),
       this.socket.fromEvent<MessageData[]>('history')
     ).pipe(catchError(this.handleError));
+  }
+
+  public openSocket(): void {
+    this.socket.connect();
+  }
+
+  public closeSocket(): void {
+    this.socket.disconnect();
   }
 
   private handleError = (err: HttpErrorResponse): Observable<never> => throwError(err);

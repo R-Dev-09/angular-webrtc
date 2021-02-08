@@ -1,11 +1,11 @@
 <div class="screen">
   <div class="self">
-    <span>{{streamService.localStream?.id}}</span>
+    <span>{{socketService.socketId}}</span>
     <video [muted]="true" autoplay playsinline [srcObject]="streamService.localStream"></video>
   </div>
   <mat-grid-list *ngIf="!!(streamService.remoteStreams | keyvalue).length; else myself" class="remote" [cols]="maxCols(2)" rowHeight="fit">
     <mat-grid-tile class="remote-tile" *ngFor="let remote of streamService.remoteStreams | keyvalue">
-      <span class="name">{{remote.key}}</span>
+      <span class="name">{{remote.value.userName || remote.key}}</span>
       <video autoplay playsinline [srcObject]="remote.value"></video>
     </mat-grid-tile>
   </mat-grid-list>
@@ -24,7 +24,7 @@
 <div class="chat">
   <ul>
     <li *ngFor="let message of messages" [ngClass]="{own: message.socketId === socketService.socketId}">
-      <h5>{{message.socketId === socketService.socketId ? 'You' : message.socketId}}</h5>
+      <h5>{{message.socketId === socketService.socketId ? 'You' : message.userName || message.socketId}}</h5>
       <p>{{message.msg}}</p>
     </li>
   </ul>

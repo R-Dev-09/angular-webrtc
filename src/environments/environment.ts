@@ -8,8 +8,8 @@ export const environment = {
     'stun:stun1.l.google.com:19302',
     'stun:stun2.l.google.com:19302',
   ],
-  socketUrl: 'http://localhost:3000',
-  socketOptions: {path: '/collaborate'}
+  socketUrl: 'https://rd-ng-sockets.herokuapp.com',
+  socketOptions: {path: '/collaborate', auth: {token: 'Naris', pw: 'Naris'}}
 };
 
 /*

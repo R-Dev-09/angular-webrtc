@@ -35,8 +35,8 @@ export class RoomComponent implements OnInit, OnDestroy {
       if (Array.isArray(data)) this.messages = data;
       else this.messages.push(data);
     });
-    this.socketService.typeListener().pipe(takeUntil(this.rtcService.endConnection$)).subscribe(socketId => {
-      this.typer = socketId;
+    this.socketService.typeListener().pipe(takeUntil(this.rtcService.endConnection$)).subscribe(userName => {
+      this.typer = userName;
       if (!!this.typeout) clearTimeout(this.typeout);
       this.typeout = setTimeout(() => this.typer = null, 2000);
     });
@@ -44,6 +44,7 @@ export class RoomComponent implements OnInit, OnDestroy {
 
   public leaveRoom(): void {
     this.rtcService.leaveRoom(this.roomName);
+    this.socketService.closeSocket();
     this.router.navigate(['/']);
   }
 
