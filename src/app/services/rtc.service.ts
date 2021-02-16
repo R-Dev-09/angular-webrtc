@@ -27,7 +27,9 @@ export class RtcService {
 
   public async enterRoom(room: string): Promise<void> {
     this._currentRoom = room;
-    if (!this.streamService.localStream) await this.streamService.openLocalStream();
+    if (!this.streamService.localStream) await this.streamService.openLocalStream({audio: true});
+    if (!this.socketService.connected) this.socketService.openSocket();
+    // if (!this.streamService.hostStream) await this.streamService.openHostStream();
     this.socketService.peerListeners().pipe(takeUntil(this.endConnection$)).subscribe(data => {
       switch (data.type) {
         case 'joined': this.handleJoined(data); break;
@@ -52,7 +54,7 @@ export class RtcService {
   }
 
   private async handleJoined(data: RoomEvent): Promise<void> {
-    const peerConnection = this.createPeerConnection(data.socketId, data.userName);
+    const peerConnection = await this.createPeerConnection(data.socketId, data.userName);
     try {
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
@@ -69,7 +71,7 @@ export class RtcService {
   }
 
   private async handleOffer(data: PeerData): Promise<void> {
-    const peerConnection = this.createPeerConnection(data.socketId, data.userName);
+    const peerConnection = await this.createPeerConnection(data.socketId, data.userName);
     try {
       await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
       const answer = await peerConnection.createAnswer();
@@ -98,10 +100,12 @@ export class RtcService {
     }
   }
 
-  private createPeerConnection(socketId: string, userName: string): RTCPeerConnection {
+  private async createPeerConnection(socketId: string, userName: string, host = false): Promise<RTCPeerConnection> {
     const peerConnection = this.peerConnections[socketId] = new RTCPeerConnection(CONNFIG);
-    const localStream = this.streamService.localStream;
-    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    host ? await this.streamService.openHostStream() : await this.streamService.openLocalStream();
+    const stream = host ? this.streamService.hostStream : this.streamService.localStream;
+    console.log(stream);
+    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
     peerConnection.addEventListener('icecandidate', event => {
       if (!!event.candidate) this.socketService.sendCandidate(socketId, event.candidate.toJSON());
     });

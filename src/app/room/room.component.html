@@ -1,7 +1,8 @@
 <div class="screen">
   <div class="self">
     <span>{{socketService.socketId}}</span>
-    <video [muted]="true" autoplay playsinline [srcObject]="streamService.localStream"></video>
+    <video *ngIf="!!streamService.localStream" [muted]="true" autoplay playsinline [srcObject]="streamService.localStream"></video>
+    <video *ngIf="!!streamService.hostStream" [muted]="true" autoplay playsinline [srcObject]="streamService.hostStream"></video>
   </div>
   <mat-grid-list *ngIf="!!(streamService.remoteStreams | keyvalue).length; else myself" class="remote" [cols]="maxCols(2)" rowHeight="fit">
     <mat-grid-tile class="remote-tile" *ngFor="let remote of streamService.remoteStreams | keyvalue">

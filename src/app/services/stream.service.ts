@@ -7,10 +7,15 @@ import { MediaStreams } from '../models';
 export class StreamService {
 
   private _localStream: MediaStream;
+  private _hostStream: MediaStream;
   private _remoteStreams: MediaStreams = {};
 
   public get localStream(): MediaStream {
     return this._localStream;
+  }
+
+  public get hostStream(): MediaStream {
+    return this._hostStream;
   }
 
   public get remoteStreams(): MediaStreams {
@@ -20,9 +25,22 @@ export class StreamService {
   public async openLocalStream(constraintConfig: MediaStreamConstraints = {}): Promise<void> {
     if (!!this._localStream) alert('Local stream has alreay been opened!');
     else {
-      const constraints: MediaStreamConstraints = {video: true, audio: true};
+      const constraints: MediaStreamConstraints = {video: true, audio: false};
       try {
         this._localStream = await navigator.mediaDevices.getUserMedia({...constraints, ...constraintConfig});
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }
+
+  public async openHostStream(): Promise<void> {
+    if (!!this._hostStream) alert('Host stream has alreay been opened!');
+    else {
+      const constraints: MediaStreamConstraints = {video: true, audio: false};
+      try {
+        // @ts-ignore
+        this._hostStream = await navigator.mediaDevices.getDisplayMedia(constraints);
       } catch (e) {
         console.error(e);
       }
@@ -34,6 +52,14 @@ export class StreamService {
     else {
       this._localStream.getTracks().forEach(track => track.stop());
       this._localStream = null;
+    }
+  }
+
+  public closeHostStream(): void {
+    if (!this._hostStream) alert('No stream to close!');
+    else {
+      this._hostStream.getTracks().forEach(track => track.stop());
+      this._hostStream = null;
     }
   }
 

@@ -16,8 +16,12 @@ export class SocketService {
     return this.socket.id;
   }
 
+  public get connected(): boolean {
+    return this.socket.connected;
+  }
+
   public joinRoom(room: string): void {
-    this.socket.emit('join', {room, userName: this.socketId});
+    this.socket.emit('join', {room, userName: this.socketId, user: {host: true}});
   }
 
   public leaveRoom(room: string): void {

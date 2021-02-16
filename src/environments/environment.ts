@@ -4,11 +4,19 @@
 
 export const environment = {
   production: false,
-  stunUrls: [
-    'stun:stun1.l.google.com:19302',
-    'stun:stun2.l.google.com:19302',
+  iceServers: [
+    {urls: [
+      'stun:stun1.l.google.com:19302',
+      'stun:stun2.l.google.com:19302',
+    ]}
   ],
-  socketUrl: 'https://rd-ng-sockets.herokuapp.com',
+  socketUrl: 'http://localhost:3000',
+  // socketUrl: 'https://srv01.naris-grc.com:443',
+  // iceServers: [
+  //   {urls: 'stun:srv02.naris-grc.com:80'},
+  //   {urls: 'turn:srv02.naris-grc.com:80', username: 'gSTw57s6FaWk', credential: 'DwSWp)r?7J[L%xfz'}
+  // ],
+  // socketUrl: 'http://srv01.naris-grc.com:3000',
   socketOptions: {path: '/collaborate', auth: {token: 'Naris', pw: 'Naris'}}
 };
 
