@@ -13,6 +13,8 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AppInterceptor } from './app.interceptor';
 import { NgxSocketsModule } from 'ngx-sockets';
 import { SOCKET_CONFIG } from './constants';
+import { ServiceWorkerModule } from '@angular/service-worker';
+import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [
@@ -27,7 +29,13 @@ import { SOCKET_CONFIG } from './constants';
     BrowserAnimationsModule,
     FormsModule,
     MatGridListModule,
-    NgxSocketsModule.forRoot(SOCKET_CONFIG)
+    NgxSocketsModule.forRoot(SOCKET_CONFIG),
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: environment.production,
+      // Register the ServiceWorker as soon as the app is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: 'registerWhenStable:30000'
+    })
   ],
   providers: [{provide: HTTP_INTERCEPTORS, useClass: AppInterceptor, multi: true}],
   bootstrap: [AppComponent]

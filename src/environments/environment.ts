@@ -11,13 +11,7 @@ export const environment = {
     ]}
   ],
   socketUrl: 'http://localhost:3000',
-  // socketUrl: 'https://srv01.naris-grc.com:443',
-  // iceServers: [
-  //   {urls: 'stun:srv02.naris-grc.com:80'},
-  //   {urls: 'turn:srv02.naris-grc.com:80', username: 'gSTw57s6FaWk', credential: 'DwSWp)r?7J[L%xfz'}
-  // ],
-  // socketUrl: 'http://srv01.naris-grc.com:3000',
-  socketOptions: {path: '/collaborate', auth: {token: 'Naris', pw: 'Naris'}}
+  socketOptions: {}
 };
 
 /*
