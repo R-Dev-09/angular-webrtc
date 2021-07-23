@@ -1,0 +1,241 @@
+:host {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  background: #00afbf;
+
+  .screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 80%;
+    height: 100%;
+    border-right: 3px solid black;
+
+    .lyrics {
+
+      h1 {
+        color: whitesmoke;
+        font-size: 4rem;
+        line-height: 4rem;
+        margin-top: 4rem;
+      }
+
+      .quote {
+        position: relative;
+
+        h1 {
+          margin: 0;
+        }
+
+        &::before,
+        &::after {
+          content: "\"";
+          position: absolute;
+          color: whitesmoke;
+          font-size: 4rem;
+        }
+
+        &::before {
+          top: -2rem;
+          left: -2rem;
+        }
+
+        &::after {
+          bottom: -2rem;
+          right: -2rem;
+        }
+      }
+    }
+
+    .self {
+      width: 426px;
+      height: 240px;
+      position: absolute;
+      background: black;
+      bottom: 0;
+      right: 0;
+      z-index: 5;
+      border-top: 2px solid #00afbf;
+      border-left: 2px solid #00afbf;
+
+      span {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: whitesmoke;
+        padding: 0.1rem 0.5rem;
+      }
+
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    .remote {
+      width: 100%;
+      height: 100%;
+
+      .remote-tile {
+        width: 100%;
+        height: auto;
+
+        span {
+          position: absolute;
+          top: 0;
+          left: 0;
+          background: whitesmoke;
+          padding: 0.1rem 0.5rem;
+        }
+
+        video {
+          width: 100%;
+          height: 100%;
+          object-position: 50% 50%;
+          object-fit: cover;
+        }
+      }
+    }
+  }
+
+  .chat {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: whitesmoke;
+    width: 20%;
+    height: 100%;
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      overflow-y: auto;
+      width: 100%;
+      height: 90%;
+      background: linear-gradient(to bottom, #000000, #434343);
+
+      li {
+        margin: 0;
+        padding: 0.5rem;
+        background: linear-gradient(to left, #ada996, #f2f2f2, #dbdbdb, #eaeaea);
+        border: 2px solid black;
+        border-radius: 5px;
+
+        h5 {
+          margin: 0;
+        }
+
+        p {
+          font-size: 1rem;
+          overflow-wrap: normal;
+        }
+
+        &.own {
+          background: linear-gradient(to left, #a1ffce, #faffd1);
+
+          h5 {
+            text-align: end;
+          }
+        }
+      }
+    }
+
+    .bottom {
+      width: 100%;
+      height: 10%;
+
+      textarea {
+        display: block;
+        width: 100%;
+        height: 50%;
+        padding: 1rem;
+        font-size: 1rem;
+        resize: none;
+        overflow-y: hidden;
+        outline: none;
+      }
+
+      .buttons {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        height: 50%;
+        overflow: hidden;
+
+        p {
+          margin-top: 0.5rem;
+          margin-right: 2rem;
+        }
+
+        button {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-decoration: none;
+          outline: none;
+          cursor: pointer;
+          color: #fff;
+          padding: 1rem;
+          border: 1px solid #2d6898;
+          background-image: linear-gradient(to bottom, #1e3c72, #2a5298);
+          background-image: -o-linear-gradient(to bottom, #1e3c72, #2a5298);
+          background-image: -moz-linear-gradient(to bottom, #1e3c72, #2a5298);
+          background-image: -webkit-linear-gradient(to bottom, #1e3c72, #2a5298);
+          background-image: -ms-linear-gradient(to bottom, #1e3c72, #2a5298);
+          background-image: -webkit-gradient(
+              linear,
+              left bottom,
+              left top,
+              color-stop(0, #1e3c72),
+              color-stop(1, #2a5298)
+          );
+          -webkit-border-radius: 5px;
+          -moz-border-radius: 5px;
+          border-radius: 5px;
+          text-shadow: 0px -1px 0px rgba(0,0,0,.5);
+          -webkit-box-shadow: 0px 6px 0px #2b638f, 0px 3px 15px rgba(0,0,0,.4), inset 0px 1px 0px rgba(255,255,255,.3), inset 0px 0px 3px rgba(255,255,255,.5);
+          -moz-box-shadow: 0px 6px 0px #2b638f, 0px 3px 15px rgba(0,0,0,.4), inset 0px 1px 0px rgba(255,255,255,.3), inset 0px 0px 3px rgba(255,255,255,.5);
+          box-shadow: 0px 6px 0px #2b638f, 0px 3px 15px rgba(0,0,0,.4), inset 0px 1px 0px rgba(255,255,255,.3), inset 0px 0px 3px rgba(255,255,255,.5);
+          -webkit-transition: all .1s ease-in-out;
+          -moz-transition: all .2s ease-in-out;
+          transition: all .2s ease-in-out;
+
+          &:active {
+            -webkit-box-shadow: 0px 2px 0px #2b638f, 0px 1px 6px rgba(0,0,0,.4), inset 0px 1px 0px rgba(255,255,255,.3), inset 0px 0px 3px rgba(255,255,255,.5);
+            -moz-box-shadow: 0px 2px 0px #2b638f, 0px 1px 6px rgba(0,0,0,.4), inset 0px 1px 0px rgba(255,255,255,.3), inset 0px 0px 3px rgba(255,255,255,.5);
+            box-shadow: 0px 2px 0px #2b638f, 0px 1px 6px rgba(0,0,0,.4), inset 0px 1px 0px rgba(255,255,255,.3), inset 0px 0px 3px rgba(255,255,255,.5);
+            -webkit-transform: translate(0, 4px);
+            -moz-transform: translate(0, 4px);
+            transform: translate(0, 4px);
+          }
+
+          span {
+            margin-left: 0.5rem;
+            font-size: 1rem;
+          }
+
+          &.red {
+            border: 1px solid #2d6898;
+            background-image: linear-gradient(to bottom, #e52d27, #b31217);
+            background-image: -o-linear-gradient(to bottom, #e52d27, #b31217);
+            background-image: -moz-linear-gradient(to bottom, #e52d27, #b31217);
+            background-image: -webkit-linear-gradient(to bottom, #e52d27, #b31217);
+            background-image: -ms-linear-gradient(to bottom, #e52d27, #b31217);
+            background-image: -webkit-gradient(
+                linear,
+                left bottom,
+                left top,
+                color-stop(0, #e52d27),
+                color-stop(1, #b31217)
+            );
+          }
+        }
+      }
+    }
+  }
+}

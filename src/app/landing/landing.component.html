@@ -1,0 +1,4 @@
+<div class="start">
+  <h1><span>Enter</span> the name of the room you want to <span>Enter</span> and hit <span>Enter</span>!</h1>
+  <input id="room" [(ngModel)]="roomName" [value]="roomName" (keypress)="toRoom($event)" placeholder="Enter a room name ...">
+</div>

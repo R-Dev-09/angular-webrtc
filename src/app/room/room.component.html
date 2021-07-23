@@ -1,0 +1,42 @@
+<div class="screen">
+  <div class="self">
+    <span>{{socketService.socketId}}</span>
+    <video *ngIf="!!streamService.localStream" [muted]="true" autoplay playsinline [srcObject]="streamService.localStream"></video>
+    <video *ngIf="!!streamService.hostStream" [muted]="true" autoplay playsinline [srcObject]="streamService.hostStream"></video>
+  </div>
+  <mat-grid-list *ngIf="!!(streamService.remoteStreams | keyvalue).length; else myself" class="remote" [cols]="maxCols(2)" rowHeight="fit">
+    <mat-grid-tile class="remote-tile" *ngFor="let remote of streamService.remoteStreams | keyvalue">
+      <span class="name">{{remote.value.userName || remote.key}}</span>
+      <video autoplay playsinline [srcObject]="remote.value"></video>
+    </mat-grid-tile>
+  </mat-grid-list>
+  <ng-template #myself>
+    <div class="lyrics">
+      <div class="quote">
+        <h1>Aaalllll byyyy myyyseeeheheeelf</h1>
+        <h1>Don't wanna be ...</h1>
+        <h1>Aaallll byyy myyyseeelf</h1>
+        <h1>Anymore ...</h1>
+      </div>
+      <h1>- Celine Dion</h1>
+    </div>
+  </ng-template>
+</div>
+<div class="chat">
+  <ul>
+    <li *ngFor="let message of messages" [ngClass]="{own: message.socketId === socketService.socketId}">
+      <h5>{{message.socketId === socketService.socketId ? 'You' : message.userName || message.socketId}}</h5>
+      <p>{{message.msg}}</p>
+    </li>
+  </ul>
+  <div class="bottom">
+    <textarea [(ngModel)]="currentMessage" [value]="currentMessage" (keypress)="submitMessage($event)" placeholder="Type a message ..." wrap="hard" cols="1"></textarea>
+    <div class="buttons">
+      <button class="red" (click)="leaveRoom()">
+        <i class="material-icons">exit_to_app</i>
+        <span>Exit room</span>
+      </button>
+      <p *ngIf="!!typer">{{typer}} is typing ...</p>
+    </div>
+  </div>
+</div>

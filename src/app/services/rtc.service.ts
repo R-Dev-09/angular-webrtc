@@ -1,111 +1,119 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore, DocumentData, QuerySnapshot } from '@angular/fire/firestore';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { CONNFIG } from '../constants';
-import { PeerConnections } from '../models';
+import { Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { SocketService } from './socket.service';
 import { StreamService } from './stream.service';
+import { PeerConnections, PeerData, RoomEvent } from '../models';
+import { CONNFIG } from '../constants';
 
 @Injectable({
   providedIn: 'root'
 })
 export class RtcService {
 
+  public _endConnection$ = new Subject<void>();
   private peerConnections: PeerConnections = {};
-  private roomCollection = this.firestore.collection('ng-rooms');
-  private roomsStarted: string[] = [];
   private _currentRoom: string;
-  private _rooms$ = this.roomCollection.valueChanges({idField: 'id'});
 
-  constructor(private firestore: AngularFirestore, private streamService: StreamService) {}
+  constructor(private streamService: StreamService, private socketService: SocketService) {}
+
+  public get endConnection$(): Observable<void> {
+    return this._endConnection$.asObservable();
+  }
 
   public get currentRoom(): string {
     return this._currentRoom;
   }
 
-  public get rooms$(): Observable<string[]> {
-    return this._rooms$.pipe(map(changes => changes.map(r => r.id)));
-  }
-
-  public async createRoom(): Promise<void> {
-    if (!this.streamService.localStream) await this.streamService.openLocalStream();
-    const roomRef = await this.roomCollection.add({});
-    this._currentRoom = roomRef.id;
-    this.roomsStarted.push(roomRef.id);
-    this.peerConnections['local'] = new RTCPeerConnection(CONNFIG);
-    this.streamService.localStream.getTracks().forEach(track => this.peerConnections['local'].addTrack(track, this.streamService.localStream));
-    const callerCandidates = roomRef.collection('callerCandidates');
-    this.peerConnections['local'].addEventListener('icecandidate', event => {
-      if (!!event.candidate) callerCandidates.add(event.candidate.toJSON());
-    });
-    const offer = await this.peerConnections['local'].createOffer();
-    await this.peerConnections['local'].setLocalDescription(offer);
-    await roomRef.set({offer: {type: offer.type, sdp: offer.sdp}});
-    this.peerConnections['local'].addEventListener('track', this.streamHandler);
-    roomRef.onSnapshot(async snapshot => {
-      const data = snapshot.data();
-      if (!this.peerConnections['local'].currentRemoteDescription && !!data?.answer) {
-        const rtcSessionDescription = new RTCSessionDescription(data.answer);
-        await this.peerConnections['local'].setRemoteDescription(rtcSessionDescription);
+  public async enterRoom(room: string): Promise<void> {
+    this._currentRoom = room;
+    if (!this.streamService.localStream) await this.streamService.openLocalStream({audio: true});
+    if (!this.socketService.connected) this.socketService.openSocket();
+    // if (!this.streamService.hostStream) await this.streamService.openHostStream();
+    this.socketService.peerListeners().pipe(takeUntil(this.endConnection$)).subscribe(data => {
+      switch (data.type) {
+        case 'joined': this.handleJoined(data); break;
+        case 'left': this.handleLeft(data); break;
+        case 'offer': this.handleOffer(data); break;
+        case 'answer': this.handleAnswer(data); break;
+        case 'candidate': this.handleCandidate(data); break;
+        default: console.error('No type could be determined from data!');
       }
-    });
-    roomRef.collection('calleeCandidates').onSnapshot(this.snapshotHandler);
+    }, console.error);
+    this.socketService.joinRoom(room);
   }
 
-  public async joinRoom(roomId: string): Promise<void> {
-    this._currentRoom = roomId;
-    const roomSnapshot = await this.roomCollection.doc(roomId).get().toPromise();
-    if (roomSnapshot.exists) {
-      if (!this.streamService.localStream) await this.streamService.openLocalStream();
-      this.peerConnections['local'] = new RTCPeerConnection(CONNFIG);
-      this.streamService.localStream.getTracks().forEach(track => this.peerConnections['local'].addTrack(track, this.streamService.localStream));
-      const calleeCandidates = this.roomCollection.doc(roomId).collection('calleeCandidates');
-      this.peerConnections['local'].addEventListener('icecandidate', event => {
-        if (!!event.candidate) calleeCandidates.add(event.candidate.toJSON());
-      });
-      this.peerConnections['local'].addEventListener('track', this.streamHandler);
-      const roomData = roomSnapshot.data();
-      await this.peerConnections['local'].setRemoteDescription(new RTCSessionDescription(roomData.offer));
-      const roomRef = this.roomCollection.doc(roomId);
-      const answer = await this.peerConnections['local'].createAnswer();
-      await this.peerConnections['local'].setLocalDescription(answer);
-      await roomRef.update({answer: {type: answer.type, sdp: answer.sdp}});
-      this.roomCollection.doc(roomId).collection('callerCandidates').ref.onSnapshot(this.snapshotHandler);
-    }
-  }
-
-  public hangUp(): void {
+  public leaveRoom(room: string): void {
     this.streamService.closeStreams();
-    for (const pc in this.peerConnections) {
-      this.peerConnections[pc].close();
+    this.socketService.leaveRoom(room);
+    for (const id in this.peerConnections) {
+      this.peerConnections[id].close();
+      delete this.peerConnections[id];
     }
-    if (!!this.roomsStarted.length) this.roomsStarted.forEach(room => this.closeRoom(room));
+    this._endConnection$.next();
   }
 
-  private async closeRoom(roomId: string): Promise<void> {
-    const roomRef = this.roomCollection.doc(roomId);
-    const callerCandidates = await roomRef.collection('callerCandidates').get().toPromise();
-    const calleeCandidates = await roomRef.collection('calleeCandidates').get().toPromise();
-    const batch = this.firestore.firestore.batch();
-    callerCandidates.docs.forEach(candidate => batch.delete(candidate.ref));
-    calleeCandidates.docs.forEach(candidate => batch.delete(candidate.ref));
-    await batch.commit();
-    await roomRef.delete();
-    this._currentRoom = null;
+  private async handleJoined(data: RoomEvent): Promise<void> {
+    const peerConnection = await this.createPeerConnection(data.socketId, data.userName);
+    try {
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      this.socketService.sendOffer(data.socketId, {type: offer.type, sdp: offer.sdp});
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  private streamHandler = (event: RTCTrackEvent): void => {
-    const stream = event.streams[0];
-    this.streamService.remoteStreams[stream.id] = stream;
-    this.streamService.updateRemoteStreams();
+  private handleLeft(data: RoomEvent): void {
+    this.peerConnections[data.socketId]?.close();
+    this.streamService.closeStream(data.socketId);
+    delete this.peerConnections[data.socketId];
   }
 
-  private snapshotHandler = (snapshot: QuerySnapshot<DocumentData>): void => {
-    snapshot.docChanges().forEach(async change => {
-      if (change.type === 'added') {
-        const data = change.doc.data();
-        await this.peerConnections['local'].addIceCandidate(new RTCIceCandidate(data));
-      }
+  private async handleOffer(data: PeerData): Promise<void> {
+    const peerConnection = await this.createPeerConnection(data.socketId, data.userName);
+    try {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+      this.socketService.sendAnswer(data.socketId, {type: answer.type, sdp: answer.sdp});
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  private async handleAnswer(data: PeerData): Promise<void> {
+    const peerConnection = this.peerConnections[data.socketId];
+    try {
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  private async handleCandidate(data: PeerData): Promise<void> {
+    const peerConnection = this.peerConnections[data.socketId];
+    try {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  private async createPeerConnection(socketId: string, userName: string, host = false): Promise<RTCPeerConnection> {
+    const peerConnection = this.peerConnections[socketId] = new RTCPeerConnection(CONNFIG);
+    host ? await this.streamService.openHostStream() : await this.streamService.openLocalStream();
+    const stream = host ? this.streamService.hostStream : this.streamService.localStream;
+    console.log(stream);
+    stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+    peerConnection.addEventListener('icecandidate', event => {
+      if (!!event.candidate) this.socketService.sendCandidate(socketId, event.candidate.toJSON());
     });
+    peerConnection.addEventListener('track', event => {
+      const remoteStream = event.streams[0];
+      remoteStream['userName'] = userName;
+      this.streamService.remoteStreams[socketId] = remoteStream;
+    });
+    return peerConnection;
   }
 }
